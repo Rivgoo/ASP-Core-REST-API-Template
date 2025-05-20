@@ -35,4 +35,11 @@ internal class UserRepository(CoreDbContext dbContext) :
 			})
 			.FirstOrDefaultAsync(cancellationToken);
 	}
+
+	public async Task SetLastLoginAt(string userId, DateTime lastLoginAt)
+	{
+		await _entities
+			.Where(x => x.Id.Equals(userId))
+			.ExecuteUpdateAsync(x => x.SetProperty(x => x.LastLoginAt, lastLoginAt));
+	}
 }

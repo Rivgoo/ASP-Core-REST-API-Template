@@ -1,4 +1,6 @@
 ﻿using Application.Abstractions.Services;
+using Application.Authentication;
+using Application.Authentication.Abstractions;
 using Application.Filters.Abstractions;
 using Application.Filters.Services;
 using Application.Options;
@@ -20,27 +22,29 @@ public static class Dependency
 		services.Configure<UserFilterSettingsOptions>(configuration.GetSection(UserFilterSettingsOptions.SectionName));
 		#endregion
 
-		#region Auto Services discovery
+		#region Auto Entity Services discovery
 		var applicationAssembly = typeof(Dependency).Assembly;
 
 		var serviceTypes = applicationAssembly.GetTypes()
-			.Where(type => type.IsClass && !type.IsAbstract)
-			.Where(type => type.GetInterfaces().Any(
-				implementedInterface => implementedInterface.IsGenericType &&
-										implementedInterface.GetGenericTypeDefinition() == typeof(IEntityService<,>)));
+			.Where(type => type.IsClass && !type.IsAbstract && type.Name.EndsWith("Service"));
 
 		foreach (var serviceType in serviceTypes)
 		{
-			var implementedInterfaces = serviceType.GetInterfaces()
-				.Where(i => !(i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityService<,>)) && i != typeof(IDisposable))
+			var specificInterfaces = serviceType.GetInterfaces()
+				.Where(i => !(i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEntityService<,>))
+						&& i != typeof(IDisposable)
+						&& i.Namespace != null && i.Namespace.StartsWith("Application"))
 				.ToList();
 
-			if (implementedInterfaces.Count != 0)
-				foreach (var interfaceType in implementedInterfaces)
+			if (specificInterfaces.Count != 0)
+				foreach (var interfaceType in specificInterfaces)
 					services.AddScoped(interfaceType, serviceType);
 		}
+		#endregion
 
+		#region Services
 		services.AddScoped<IUserRegistrator, UserRegistrator>();
+		services.AddScoped<IAuthenticationService, AuthenticationService>();
 		#endregion
 
 		services.AddScoped(typeof(IFilterService<,>), typeof(FilterService<,>));

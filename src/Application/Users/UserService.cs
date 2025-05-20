@@ -5,20 +5,14 @@ using Application.Users.Abstractions;
 using Application.Users.Models;
 using Application.Utilities;
 using Domain.Entities;
-using Microsoft.AspNetCore.Identity;
 
 namespace Application.Users;
 
 internal class UserService(
-	UserManager<User> userManager,
-	SignInManager<User> signInManager,
 	IUserRepository entityRepository,
 	IUnitOfWork unitOfWork) :
 	BaseEntityService<User, string, IUserRepository>(entityRepository, unitOfWork), IUserService
 {
-	private readonly UserManager<User> _userManager = userManager;
-	private readonly SignInManager<User> _signInManager = signInManager;
-
 	public override async Task<Result<User>> UpdateAsync(User changedEntity)
 	{
 		var alreadyExistsResult = await ExistsByEmailAsync(changedEntity.Email);
@@ -68,58 +62,8 @@ internal class UserService(
 
 		return Result<UserInfo>.Ok(userInfo);
 	}
-
-	public async Task<AuthenticationResult> TryAuthentication(string email, string password)
-	{
-		var result = new AuthenticationResult();
-
-		if (StringUtilities.ValidateEmail(email) == false)
-		{
-			result.IsInvalidCredentials = true;
-			return result;
-		}
-
-		var user = await entityRepository.GetByEmailAsync(email);
-
-		if (user == null)
-		{
-			result.IsInvalidCredentials = true;
-			return result;
-		}
-
-		if (user.IsBlocked)
-		{
-			result.IsBlocked = true;
-			return result;
-		}
-
-		if (!user.EmailConfirmed)
-		{
-			result.IsEmailNotConfirmed = true;
-			return result;
-		}
-
-		var signInResult = await _signInManager.PasswordSignInAsync(email, password, false, true);
-
-		if (signInResult.Succeeded)
-		{
-			var role = (await _userManager.GetRolesAsync(user))[0];
-			result.User = new(user.Id, role);
-			result.Succeeded = true;
-
-			return result;
-		}
-
-		if (signInResult.IsLockedOut)
-		{
-			result.IsLockedOut = true;
-			return result;
-		}
-
-		result.IsInvalidCredentials = true;
-
-		return result;
-	}
+	public async Task UpdateLastLogin(string userId)
+		=> await _entityRepository.SetLastLoginAt(userId, DateTime.UtcNow);
 
 	protected override async Task<Result> ValidateEntityAsync(User entity)
 	{

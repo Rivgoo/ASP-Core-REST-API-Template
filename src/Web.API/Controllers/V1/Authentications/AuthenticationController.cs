@@ -1,5 +1,5 @@
-﻿using Application.Results;
-using Application.Users.Abstractions;
+﻿using Application.Authentication.Abstractions;
+using Application.Results;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,19 +20,22 @@ namespace Web.API.Controllers.V1.Authentications;
 /// Initializes a new instance of the <see cref="AuthenticationController"/> class.
 /// </remarks>
 /// <param name="jwtAuthentication">The JWT authentication service for token operations.</param>
-/// <param name="userService">The user service for user authentication logic.</param>
+/// <param name="authenticationService">The authentication service for user login operations.</param>
+/// <param name="logger">The logger for logging authentication-related events.</param>
 /// <param name="configuration">The application configuration.</param>
 [ApiVersion("1")]
 [ApiController]
 [Route("api/v{version:apiVersion}/auth")]
 public class AuthenticationController(
 	JwtAuthentication jwtAuthentication,
-	IUserService userService,
+	IAuthenticationService authenticationService,
+	ILogger<AuthenticationController> logger,
 	IConfiguration configuration) : ApiController
 {
 	private readonly JwtAuthentication _jwtAuthentication = jwtAuthentication;
 	private readonly IConfiguration _configuration = configuration;
-	private readonly IUserService _userService = userService;
+	private readonly IAuthenticationService _authenticationService = authenticationService;
+	private readonly ILogger<AuthenticationController> _logger = logger;
 
 	/// <summary>
 	/// Authenticates a user and issues a JWT access token upon successful login.
@@ -69,9 +72,12 @@ public class AuthenticationController(
 	public async Task<IActionResult> Token([FromBody] AuthenticationRequest request)
 	{
 		if (!_configuration.GetValue<bool>("EnableAPIAuth"))
+		{
+			_logger.LogWarning("Authentication attempt while API authentication is disabled.");
 			return Result.Bad(AuthenticationErrors.APIDisabled).ToActionResult();
+		}
 
-		var authenticationResult = await _userService.TryAuthentication(request.Email, request.Password);
+		var authenticationResult = await _authenticationService.AuthenticateAsync(request.Email, request.Password);
 
 		if (authenticationResult.Succeeded == false)
 		{
@@ -86,6 +92,15 @@ public class AuthenticationController(
 
 			if (authenticationResult.IsBlocked)
 				return Result.Bad(AuthenticationErrors.UserBlocked).ToActionResult();
+
+			_logger.LogError("Authentication failed for email {Email} with Succeeded=false but no specific error flag set in AuthenticationResult.", request.Email);
+			return Result.Bad(AuthenticationErrors.InvalidCredentials).ToActionResult();
+		}
+
+		if (authenticationResult.User == null)
+		{
+			_logger.LogError("Authentication succeeded for email {Email} but User object in AuthenticationResult is null.", request.Email);
+			return Result.Bad(AuthenticationErrors.ServiceError).ToActionResult();
 		}
 
 		var response = new AuthenticationResponse()

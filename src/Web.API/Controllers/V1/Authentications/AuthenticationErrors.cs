@@ -49,4 +49,11 @@ public static class AuthenticationErrors
 	/// <value>An <see cref="Error"/> instance for a blocked user.</value>
 	public static Error UserBlocked =>
 		Error.AccessForbidden($"{_authenticationPrefix}.UserBlocked", "User account is blocked.");
+
+	/// <summary>
+	/// Gets an error indicating that the authentication process encountered an unexpected error.
+	/// </summary>
+	/// <value>An <see cref="Error"/> instance for a service error.</value>
+	public static Error ServiceError =>
+		Error.InternalServerError($"{_authenticationPrefix}.ServiceError", "An unexpected error occurred during authentication.");
 }
