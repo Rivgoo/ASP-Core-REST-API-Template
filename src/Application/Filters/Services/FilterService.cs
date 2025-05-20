@@ -4,18 +4,22 @@ using Application.Filters.Abstractions;
 using Domain.Abstractions;
 using Application.Results;
 using Microsoft.EntityFrameworkCore;
+using Application.Options;
+using Microsoft.Extensions.Options;
 
 namespace Application.Filters.Services;
 
 internal class FilterService<TEntity, TFilter>(
-	IServiceProvider serviceProvider) : IFilterService<TEntity, TFilter>
+	IServiceProvider serviceProvider,
+	IOptions<FilterSettingsOptions> filterSettingsOptions) : IFilterService<TEntity, TFilter>
 	where TEntity : class, IEntity
 	where TFilter : IFilter
 {
 	private readonly IServiceProvider _serviceProvider = serviceProvider;
+	private readonly FilterSettingsOptions _filterSettings = filterSettingsOptions.Value;
 
-	private TFilter _filter;
-	private ISorter<TEntity, TFilter> _sorter;
+	private TFilter _filter = default!;
+	private ISorter<TEntity, TFilter> _sorter = default!;
 
 	private int _pageSize = 0;
 	private bool _splitQuery = false;
@@ -34,7 +38,13 @@ internal class FilterService<TEntity, TFilter>(
 	}
 	public IFilterService<TEntity, TFilter> SetPageSize(int pageSize)
 	{
-		_pageSize = Math.Clamp(pageSize, 1, 10000000);
+		if (pageSize <= 0)
+			_pageSize = _filterSettings.DefaultPageSize;
+		else
+			_pageSize = pageSize;
+
+		_pageSize = Math.Clamp(_pageSize, 1, _filterSettings.MaxPageSize);
+
 		return this;
 	}
 	public IFilterService<TEntity, TFilter> SplitQuery(bool splitQuery = true)
@@ -86,7 +96,8 @@ internal class FilterService<TEntity, TFilter>(
 	{
 		if (_filter == null) throw new ArgumentNullException(nameof(_filter));
 
-		if (_pageSize == 0) throw new ArgumentNullException(nameof(_pageSize));
+		if (_pageSize == 0)
+			SetPageSize(0);
 
 		_sorter ??= _serviceProvider.GetRequiredService<ISorter<TEntity, TFilter>>();
 
@@ -110,7 +121,8 @@ internal class FilterService<TEntity, TFilter>(
 	{
 		if (_filter == null) throw new ArgumentNullException(nameof(_filter));
 
-		if (_pageSize == 0) throw new ArgumentNullException(nameof(_pageSize));
+		if (_pageSize == 0)
+			SetPageSize(0);
 
 		_sorter ??= _serviceProvider.GetRequiredService<ISorter<TEntity, TFilter>>();
 
@@ -130,14 +142,15 @@ internal class FilterService<TEntity, TFilter>(
 
 	public async Task<Result<PaginatedList<TResult>>> ApplyWithUnionAsync<TResult, TSelector>(
 		IQueryable<TResult> union,
-		List<QueryableOrder> resultOrder = null,
+		List<QueryableOrder> resultOrder = default!,
 		CancellationToken cancellationToken = default)
 		where TResult : class
 		where TSelector : ISelector<TEntity, TResult>
 	{
 		if (_filter == null) throw new ArgumentNullException(nameof(_filter));
 
-		if (_pageSize == 0) throw new ArgumentNullException(nameof(_pageSize));
+		if (_pageSize == 0)
+			SetPageSize(0);
 
 		_sorter ??= _serviceProvider.GetRequiredService<ISorter<TEntity, TFilter>>();
 
@@ -149,7 +162,7 @@ internal class FilterService<TEntity, TFilter>(
 		var resultQuery = _serviceProvider.GetRequiredService<TSelector>().Select(query);
 		resultQuery = resultQuery.Union(union);
 
-		if(resultOrder != null)
+		if (resultOrder != null && resultOrder.Count > 0)
 			resultQuery = GetOrderedQuery(resultQuery, resultOrder);
 
 		var count = await PaginatedList<TResult>.CountAsync(resultQuery, cancellationToken);
@@ -159,15 +172,17 @@ internal class FilterService<TEntity, TFilter>(
 		return Result<PaginatedList<TResult>>.Ok(result);
 	}
 	public async Task<Result<PaginatedList<TResult>>> ApplyWithUnionAsync<TResult>(
-		IQueryable<TResult> union, 
+		IQueryable<TResult> union,
 		Expression<Func<TEntity, TResult>> selector,
-		List<QueryableOrder> resultOrder = null,
-		CancellationToken cancellationToken = default) 
+		List<QueryableOrder> resultOrder = default!,
+		CancellationToken cancellationToken = default)
 		where TResult : class
 	{
-		if (_filter == null) throw new ArgumentNullException(nameof(_filter));
+		if (_filter == null) 
+			throw new ArgumentNullException(nameof(_filter));
 
-		if (_pageSize == 0) throw new ArgumentNullException(nameof(_pageSize));
+		if (_pageSize == 0)
+			SetPageSize(0);
 
 		_sorter ??= _serviceProvider.GetRequiredService<ISorter<TEntity, TFilter>>();
 
@@ -179,7 +194,7 @@ internal class FilterService<TEntity, TFilter>(
 
 		var count = await PaginatedList<TResult>.CountAsync(resultQuery, cancellationToken);
 
-		if (resultOrder != null)
+		if (resultOrder != null && resultOrder.Count > 0)
 			resultQuery = GetOrderedQuery(resultQuery, resultOrder);
 
 		var result = (await PaginatedList<TResult>.CreateAsync(resultQuery, _filter.PageIndex, _pageSize, cancellationToken))
@@ -188,6 +203,6 @@ internal class FilterService<TEntity, TFilter>(
 		return Result<PaginatedList<TResult>>.Ok(result);
 	}
 
-	private IQueryable<TOrderEntity> GetOrderedQuery<TOrderEntity>(IQueryable<TOrderEntity> source, List<QueryableOrder> orders)
+	private static IQueryable<TOrderEntity> GetOrderedQuery<TOrderEntity>(IQueryable<TOrderEntity> source, List<QueryableOrder> orders)
 		=> orders.Aggregate(source, (query, order) => query.NewOrder(order.PropertyName, order.OrderType));
 }

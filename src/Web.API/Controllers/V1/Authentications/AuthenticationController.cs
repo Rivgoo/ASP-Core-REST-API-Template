@@ -28,12 +28,11 @@ namespace Web.API.Controllers.V1.Authentications;
 public class AuthenticationController(
 	JwtAuthentication jwtAuthentication,
 	IUserService userService,
-	IConfiguration configuration) : ApiController 
+	IConfiguration configuration) : ApiController
 {
-	private readonly JwtAuthentication _jwtAuthentication = jwtAuthentication; 
+	private readonly JwtAuthentication _jwtAuthentication = jwtAuthentication;
 	private readonly IConfiguration _configuration = configuration;
 	private readonly IUserService _userService = userService;
-	private const string _enableAPIAuthKey = "EnableAPIAuth";
 
 	/// <summary>
 	/// Authenticates a user and issues a JWT access token upon successful login.
@@ -69,7 +68,7 @@ public class AuthenticationController(
 	[ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
 	public async Task<IActionResult> Token([FromBody] AuthenticationRequest request)
 	{
-		if (!_configuration.GetValue<bool>(_enableAPIAuthKey))
+		if (!_configuration.GetValue<bool>("EnableAPIAuth"))
 			return Result.Bad(AuthenticationErrors.APIDisabled).ToActionResult();
 
 		var authenticationResult = await _userService.TryAuthentication(request.Email, request.Password);

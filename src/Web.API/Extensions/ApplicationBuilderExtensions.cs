@@ -65,7 +65,7 @@ internal static class ApplicationBuilderExtensions
 		var publicDataFolder = configuration.GetValue<string>("PublicDataFolder");
 
 		if (string.IsNullOrWhiteSpace(publicDataFolder))
-			throw new ArgumentNullException(nameof(publicDataFolder), "Public data folder configuration ('PublicDataFolder') is missing or empty.");
+			throw new ArgumentNullException(nameof(configuration), "Public data folder configuration ('PublicDataFolder') is missing or empty.");
 
 		var publicFilesRoot = Path.Combine(AppContext.BaseDirectory, publicDataFolder);
 

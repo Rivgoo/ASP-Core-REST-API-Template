@@ -12,8 +12,9 @@ using System.Security.Claims;
 using Application.Filters.Abstractions;
 using Application.Users;
 using Domain.Entities;
-using Application.Filters;
 using Application.Users.Dtos;
+using Microsoft.Extensions.Options;
+using Application.Users.Options;
 
 namespace Web.API.Controllers.V1.Users;
 
@@ -23,17 +24,21 @@ namespace Web.API.Controllers.V1.Users;
 /// <param name="mapper">The AutoMapper instance for object mapping.</param>
 /// <param name="entityService">The service for managing User entities (<see cref="IUserService"/>).</param>
 /// <param name="userRegistrator">The service for registering new users (<see cref="IUserRegistrator"/>).</param>
+/// <param name="filterService">The filter service for users.</param>
+/// <param name="userFilterSettingsOptions">Configuration options for user filtering defaults.</param>
 [ApiVersion("1")]
 [Route("api/v{version:apiVersion}/users")]
 public class UserController(
 	IMapper mapper,
 	IUserService entityService,
 	IUserRegistrator userRegistrator,
-	IFilterService<User, UserFilter> filterService) :
+	IFilterService<User, UserFilter> filterService,
+	IOptions<UserFilterSettingsOptions> userFilterSettingsOptions) :
 	EntityApiController<IUserService>(mapper, entityService)
 {
 	private readonly IUserRegistrator _userRegistrator = userRegistrator;
 	private readonly IFilterService<User, UserFilter> _filterService = filterService;
+	private readonly UserFilterSettingsOptions _userFilterSettings = userFilterSettingsOptions.Value;
 
 	/// <summary>
 	/// Retrieves user items based on filter, pagination, and ordering criteria. (Admin only)
@@ -57,25 +62,21 @@ public class UserController(
 	{
 		if (orderField == null || orderField.Length == 0)
 		{
-			orderField = ["Email"];
-			orderType = [QueryableOrderType.OrderBy];
+			orderField = [_userFilterSettings.DefaultSortField];
+
+			if (Enum.TryParse<QueryableOrderType>(_userFilterSettings.DefaultSortOrder, true, out var defaultOrderType))
+				orderType = [defaultOrderType];
+			else
+				orderType = [QueryableOrderType.OrderByDescending];
 		}
 
-		for (var i = 0; i < orderField.Length; i++)
-		{
-			var field = orderField[i];
+		var applyOrderResult = ApplyOrdering(filter, orderField, orderType);
 
-			if (orderType.Count <= i) 
-				return Result.Bad(FilterErrors.InvalidOrderInput).ToActionResult();
+		if (applyOrderResult.IsFailure)
+			return applyOrderResult.ToActionResult();
 
-			var type = orderType[i];
-			var result = filter.AddOrdering(type, field);
-
-			if (result.IsFailure) 
-				return result.ToActionResult();
-		}
-
-		var filterResult = await _filterService.SetPageSize(pageSize)
+		var filterResult = await _filterService
+			.SetPageSize(pageSize)
 			.AddFilter(filter)
 			.ApplyAsync<UserDto, IUserSelector>();
 

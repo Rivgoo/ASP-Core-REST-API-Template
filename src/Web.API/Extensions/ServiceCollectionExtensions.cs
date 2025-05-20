@@ -19,11 +19,11 @@ internal static class ServiceCollectionExtensions
 	public static IServiceCollection ConfigureApplicationServices(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
 	{
 		services.AddCORS(configuration);
-		services.AddJwtAuthentication(configuration);
+		services.AddJwtAuthenticationScheme(configuration);
 		services.AddApiVersioningConfig();
 		services.AddSwaggerConfiguration();
 		services.AddInfrastructureServices(configuration); 
-		services.AddApplicationServices();
+		services.AddApplicationServices(configuration);
 		services.AddHttpContextAccessor();
 		services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 		services.AddControllersWithJsonOptions();
@@ -36,12 +36,12 @@ internal static class ServiceCollectionExtensions
 	/// <summary>
 	/// Configures JWT authentication services.
 	/// </summary>
-	private static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+	private static IServiceCollection AddJwtAuthenticationScheme(this IServiceCollection services, IConfiguration configuration)
 	{
 		services.AddScoped<JwtAuthentication>();
 
 		var jwtSettings = configuration.GetSection("JWT").Get<JwtOptions>() ??
-			throw new ArgumentNullException(nameof(JwtOptions), "JWT options are not configured.");
+			throw new ArgumentNullException(nameof(configuration), "JWT options are not configured.");
 
 		services.AddAuthentication(options =>
 		{

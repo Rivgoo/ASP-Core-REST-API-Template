@@ -20,7 +20,7 @@ public static class StringUtilities
 		TimeSpan.FromSeconds(1));
 
 	private static readonly Regex _validPhoneNumberCharsRegex =
-			new Regex(@"^[0-9\+\-\(\)\s]+$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+			new(@"^[0-9\+\-\(\)\s]+$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
 	public static bool IsValidWebUrlWithDomainCheck(string? url)
 	{
@@ -67,19 +67,19 @@ public static class StringUtilities
 	/// Checks if a given string is a valid phone number based on a basic format and digit count.
 	/// </summary>
 	/// <param name="phoneNumber">The phone number string to validate.</param>
-	/// <param name="minimumDigitLength">The minimum number of digits required after removing non-digit characters. Defaults to 7 (a common minimum for many international numbers).</param>
-	/// <param name="maximumDigitLength">The maximum number of digits allowed after removing non-digit characters. Defaults to 15 (a common maximum for many international numbers).</param>
+	/// <param name="minimumDigitLength">The minimum number of digits required after removing non-digit characters.</param>
+	/// <param name="maximumDigitLength">The maximum number of digits allowed after removing non-digit characters.</param>
 	/// <returns><see langword="true"/> if the phone number is considered valid; otherwise, <see langword="false"/>.</returns>
 	/// <remarks>
 	/// This method performs a basic validation:
 	/// 1. Checks if the string is null or empty.
 	/// 2. Checks if the string contains only allowed characters (digits, space, hyphen, parentheses, plus).
-	/// 3. Removes all non-digit characters and checks if the resulting string of digits meets the minimum required length.
+	/// 3. Removes all non-digit characters and checks if the resulting string of digits meets the minimum and maximum required length.
 	///
 	/// This validation does NOT verify country-specific formats or the actual existence/validity of the phone number.
 	/// For strict, country-specific validation, consider using a dedicated library like libphonenumber.
 	/// </remarks>
-	public static bool ValidatePhoneNumber(string? phoneNumber, int minimumDigitLength = 7, int maximumDigitLength = 15)
+	public static bool ValidatePhoneNumber(string? phoneNumber, int minimumDigitLength, int maximumDigitLength)
 	{
 		if (string.IsNullOrEmpty(phoneNumber))
 			return false;
@@ -90,7 +90,7 @@ public static class StringUtilities
 		string digitsOnly = Regex.Replace(phoneNumber, @"[^0-9]", "");
 
 		if (digitsOnly.Length < minimumDigitLength || digitsOnly.Length > maximumDigitLength)
-			return false; 
+			return false;
 
 		return true;
 	}
@@ -134,8 +134,8 @@ public static class StringUtilities
 		if (passwordOptions.RequiredLength > 0 && password.Length < passwordOptions.RequiredLength)
 			return false;
 
-		if (passwordOptions.RequiredUniqueChars > 0 && 
-			new string(password.Distinct().ToArray()).Length < passwordOptions.RequiredUniqueChars)
+		if (passwordOptions.RequiredUniqueChars > 0 &&
+			new string([.. password.Distinct()]).Length < passwordOptions.RequiredUniqueChars)
 			return false;
 
 		bool hasDigit = false;

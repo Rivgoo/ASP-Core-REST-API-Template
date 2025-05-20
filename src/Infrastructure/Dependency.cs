@@ -23,7 +23,7 @@ public static class Dependency
 		var connectionString = configuration.GetConnectionString("DataBaseConnection");
 
 		if (string.IsNullOrWhiteSpace(connectionString))
-			throw new ArgumentNullException(nameof(configuration), "Connection string is not configured.");
+			throw new ArgumentNullException(nameof(configuration), "Connection string is not configurationured.");
 
 		services.AddDbContext<CoreDbContext>(
 			options => options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString),
@@ -41,9 +41,8 @@ public static class Dependency
 
 			var dbContext = scopedServices.GetRequiredService<CoreDbContext>();
 			var logger = scopedServices.GetService<ILogger<CoreDbContext>>();
-			var config = scopedServices.GetRequiredService<IConfiguration>();
 
-			var applyMigrations = config.GetValue<bool>("ApplyMigrations");
+			var applyMigrations = configuration.GetValue<bool>("ApplyMigrations");
 
 			if (applyMigrations)
 			{
@@ -51,15 +50,15 @@ public static class Dependency
 				{
 					dbContext.Database.Migrate();
 
-					logger?.LogInformation("Database migrations applied successfully during service configuration.");
+					logger?.LogInformation("Database migrations applied successfully during service configurationuration.");
 				}
 				catch (Exception ex)
 				{
-					logger?.LogError(ex, "An error occurred while applying database migrations during service configuration.");
+					logger?.LogError(ex, "An error occurred while applying database migrations during service configurationuration.");
 				}
 			}
 			else
-				logger?.LogInformation("Automatic database migration is disabled by configuration.");
+				logger?.LogInformation("Automatic database migration is disabled by configurationuration.");
 		}
 		#endregion
 
@@ -68,22 +67,13 @@ public static class Dependency
 		#region Identity
 		services.AddIdentity<User, Role>(options =>
 			{
-				options.SignIn.RequireConfirmedAccount = configuration.GetValue<bool>("RequireEmailConfirmedToSignIn");
-				options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(configuration.GetValue<int>("DefaultLockoutInMinutes"));
-				options.Lockout.MaxFailedAccessAttempts = configuration.GetValue<int>("MaxFailedAccessAttempts");
-				options.Lockout.AllowedForNewUsers = true;
+				configuration.Bind("IdentitySettings:SignIn", options.SignIn);
+				configuration.Bind("IdentitySettings:User", options.User);
+				configuration.Bind("IdentitySettings:Lockout", options.Lockout);
+				configuration.Bind("IdentitySettings:Password", options.Password);
 			})
+			.AddDefaultTokenProviders()
 			.AddEntityFrameworkStores<CoreDbContext>();
-
-		services.Configure<IdentityOptions>(options =>
-		{
-			options.Password.RequireDigit = true;
-			options.Password.RequireLowercase = true;
-			options.Password.RequireNonAlphanumeric = false;
-			options.Password.RequireUppercase = true;
-			options.Password.RequiredLength = 6;
-			options.Password.RequiredUniqueChars = 1;
-		});
 		#endregion
 
 		#region Repositories

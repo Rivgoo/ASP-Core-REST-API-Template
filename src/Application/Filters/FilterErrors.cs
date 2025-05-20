@@ -13,6 +13,9 @@ public class FilterErrors
 	public static Error InvalidOrderInput =>
 		Error.BadRequest($"Filter.{nameof(InvalidOrderInput)}", "The order input is incorrect.");
 
+	public static Error OrderFieldCountMismatch =>
+		Error.BadRequest($"Filter.{nameof(OrderFieldCountMismatch)}", "The number of order fields must match the number of order types.");
+
 	public static Error InvalidSortOrder =>
 		Error.BadRequest($"Filter.{nameof(InvalidSortOrder)}", "The sort order is invalid. You must add at least one order field before using ThenBy or ThenByDescending.");
 }
