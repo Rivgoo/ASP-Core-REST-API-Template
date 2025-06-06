@@ -3,59 +3,51 @@
 namespace Domain.Abstractions;
 
 /// <summary>
-/// Provides a common abstract base class for domain entities with a generic identifier type and basic auditing properties.
+/// Provides a base for domain entities with a typed ID and audit properties, implementing <see cref="IBaseEntity{TId}"/>.
 /// </summary>
-/// <typeparam name="TId">The type of the unique identifier for the entity.</typeparam>
+/// <typeparam name="TId">The type of the unique identifier. Must be a non-nullable <see cref="IComparable{T}"/>.</typeparam>
 /// <remarks>
-/// This class implements the <see cref="IBaseEntity{TId}"/> interface and provides concrete implementations
-/// for the <see cref="Id"/>, <see cref="CreatedAt"/>, and <see cref="UpdatedAt"/> properties.
-/// It includes data annotations for persistence mapping with Entity Framework Core.
-/// The <typeparamref name="TId"/> is constrained to be a non-nullable comparable type.
+/// Intended for inheritance by domain entities.
+/// <see cref="Id"/> is the primary key (<see cref="KeyAttribute"/>).
+/// <see cref="CreatedAt"/> and <see cref="UpdatedAt"/> are required (<see cref="RequiredAttribute"/>) audit timestamps, usually auto-populated.
 /// </remarks>
+/// <seealso cref="IBaseEntity{TId}"/>
+/// <seealso cref="IAuditableEntity"/>
+/// <seealso cref="IEntity"/>
 public abstract class BaseEntity<TId> : IBaseEntity<TId>
 	where TId : notnull, IComparable<TId>
 {
 	/// <summary>
-	/// Gets or sets the unique identifier for the entity.
+	/// Gets or sets the entity's unique identifier.
 	/// </summary>
-	/// <value>
-	/// The unique identifier of the entity. This property is decorated with
-	/// <see cref="KeyAttribute"/> to denote it as the primary key.
-	/// </value>
+	/// <value>The unique identifier of type <typeparamref name="TId"/>, typically the primary key.</value>
 	[Key]
 	public TId Id { get; set; }
 
 	/// <summary>
-	/// Gets or sets the date and time (typically UTC) when the entity was created.
+	/// Gets or sets the UTC creation timestamp.
 	/// </summary>
-	/// <value>
-	/// The timestamp indicating the creation time. This field is required.
-	/// Its value is often set automatically by application logic (e.g., in DbContext's SaveChanges).
-	/// </value>
+	/// <value>The <see cref="DateTime"/> the entity was created. Usually set automatically on initial save.</value>
 	[Required]
 	public DateTime CreatedAt { get; set; }
 
 	/// <summary>
-	/// Gets or sets the date and time (typically UTC) when the entity was last updated.
+	/// Gets or sets the UTC last modification timestamp.
 	/// </summary>
-	/// <value>
-	/// The timestamp indicating the last update time. This field is required.
-	/// Its value is often updated automatically by application logic (e.g., in DbContext's SaveChanges).
-	/// </value>
+	/// <value>The <see cref="DateTime"/> the entity was last updated. Usually set automatically on save.</value>
 	[Required]
 	public DateTime UpdatedAt { get; set; }
 }
 
 /// <summary>
-/// Provides a convenient abstract base class for domain entities with an integer identifier.
+/// Provides a base for domain entities with an <see cref="int"/> ID.
 /// </summary>
 /// <remarks>
-/// This class inherits from <see cref="BaseEntity{TId}"/>, specifically using <see langword="int"/>
-/// as the identifier type. It is intended as a shortcut for common cases where
-/// an integer primary key is used, inheriting all properties (<see cref="Id"/>,
-/// <see cref="CreatedAt"/>, <see cref="UpdatedAt"/>) and behaviors from the base class.
-/// This class is abstract and should be inherited by concrete entity types.
+/// Specializes <see cref="BaseEntity{TId}"/> for entities with <see cref="int"/> primary keys. 
+/// Inherits <see cref="BaseEntity{TId}.Id"/>, <see cref="BaseEntity{TId}.CreatedAt"/>, and <see cref="BaseEntity{TId}.UpdatedAt"/>.
+/// Abstract; for inheritance.
 /// </remarks>
+/// <seealso cref="BaseEntity{TId}"/>
 public abstract class BaseEntity : BaseEntity<int>
 {
 }

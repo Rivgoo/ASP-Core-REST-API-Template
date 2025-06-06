@@ -51,7 +51,7 @@ public class UserController(
 	/// <response code="400">Returns an error if the input is invalid.</response>
 	/// <response code="401">If the user is unauthorized.</response>
 	/// <response code="403">If the user is not an Admin.</response>
-	[Authorize(Roles = RoleList.Admin)]
+	[Authorize(Roles = RoleNames.Admin)]
 	[HttpGet("filter")]
 	[ProducesResponseType(typeof(PaginatedList<UserDto>), StatusCodes.Status200OK)]
 	[ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
@@ -90,7 +90,7 @@ public class UserController(
 	/// <returns>An <see cref="IActionResult"/> representing the response indicating whether the User entity exists.</returns>
 	/// <response code="200">Returns <see cref="ExistsResponse"/> with <see langword="true"/> if the entity exists, or <see langword="false"/> otherwise.</response>
 	/// <response code="401">If the request does not contain a valid authentication token.</response>
-	[Authorize(Roles = RoleList.Admin)]
+	[Authorize(Roles = RoleNames.Admin)]
 	[HttpGet("{id}/exists")]
 	[ProducesResponseType(typeof(ExistsResponse), StatusCodes.Status200OK)]
 	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -104,7 +104,7 @@ public class UserController(
 	/// <response code="200">Returns the user's basic information.</response>
 	/// <response code="404">If a user with the specified ID is not found.</response>
 	/// <response code="401">If the client is not authorized to perform this action.</response>
-	[Authorize(Roles = RoleList.Admin)]
+	[Authorize(Roles = RoleNames.Admin)]
 	[HttpGet("{id}/info")]
 	[ProducesResponseType(typeof(UserInfo), StatusCodes.Status200OK)]
 	[ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
@@ -141,7 +141,7 @@ public class UserController(
 	/// <response code="400">Returns error for validation failures (e.g., invalid password, invalid phone number) or if a user with the provided email already exists</response>
 	/// <response code="401">If the request does not contain a valid authentication token.</response>
 	/// <response code="403">If the authenticated user does not have the '<c>Admin</c>' role.</response>
-	[Authorize(Roles = RoleList.Admin)]
+	[Authorize(Roles = RoleNames.Admin)]
 	[HttpPost("admins/register")]
 	[ProducesResponseType(typeof(CreatedResponse<string>), StatusCodes.Status200OK)]
 	[ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]

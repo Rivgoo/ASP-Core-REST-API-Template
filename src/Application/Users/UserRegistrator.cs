@@ -22,9 +22,9 @@ internal class UserRegistrator(
 	private readonly PhoneNumberValidationOptions _phoneNumberValidationOptions = phoneNumberValidationOptions.Value;
 
 	public async Task<Result<User>> RegisterAdminAsync(RegistrationUserModel model)
-		=> await RegisterUserAsync(model, RoleList.Admin, true, false);
+		=> await RegisterUserAsync(model, RoleNames.Admin, true, false);
 	public async Task<Result<User>> RegisterCustomerAsync(RegistrationUserModel model)
-		=> await RegisterUserAsync(model, RoleList.Customer, true, false);
+		=> await RegisterUserAsync(model, RoleNames.Customer, true, false);
 
 	private async Task<Result<User>> RegisterUserAsync(
 		RegistrationUserModel model, string role, bool isEmailConfirmed, bool isPhoneNumberConfirmed)

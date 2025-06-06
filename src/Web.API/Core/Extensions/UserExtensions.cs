@@ -18,7 +18,7 @@ public static class UserExtensions
 	/// <param name="user">The user to check.</param>
 	/// <returns>True if the user is an Admin, otherwise false.</returns>
 	public static bool IsAdmin(this ClaimsPrincipal user)
-		=> user.IsInRole(RoleList.Admin);
+		=> user.IsInRole(RoleNames.Admin);
 
 	/// <summary>
 	/// Checks if the user is an Admin.
@@ -26,5 +26,5 @@ public static class UserExtensions
 	/// <param name="user">The user to check.</param>
 	/// <returns>True if the user is an Admin, otherwise false.</returns>
 	public static bool IsCustomer(this ClaimsPrincipal user)
-		=> user.IsInRole(RoleList.Customer);
+		=> user.IsInRole(RoleNames.Customer);
 }
