@@ -8,13 +8,13 @@ using Application.Users.Abstractions;
 using Application.Users.Models;
 using Application.Results;
 using Domain;
-using System.Security.Claims;
 using Application.Filters.Abstractions;
 using Application.Users;
 using Domain.Entities;
 using Application.Users.Dtos;
 using Microsoft.Extensions.Options;
 using Application.Users.Options;
+using Web.API.Core.Extensions;
 
 namespace Web.API.Controllers.V1.Users;
 
@@ -124,10 +124,10 @@ public class UserController(
 	[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 	public async Task<IActionResult> GetInfoByToken()
 	{
-		var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+		var id = User.GetEntityId();
 
 		if (string.IsNullOrEmpty(id))
-			return Unauthorized(Error.AccessForbidden("User.NotFound", "User not found"));
+			return Result.Bad(UserClaimsError.IdNotFoundInClaims()).ToActionResult();
 
 		return (await _entityService.GetUserInfoByIdAsync(id)).ToActionResult();
 	}

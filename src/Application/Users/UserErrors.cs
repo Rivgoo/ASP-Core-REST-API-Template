@@ -47,5 +47,7 @@ public class UserErrors : EntityErrors<User, string>
 	/// address that is already registered in the system.
 	/// </remarks>
 	public static Error UserWithEmailAlreadyExists(string? email)
-		=> Error.Conflict($"{EntityName}.{nameof(UserWithEmailAlreadyExists)}", $"User with email '{email}' already exists.");
+		=> Error.Conflict($"{EntityName}.{nameof(UserWithEmailAlreadyExists)}", 
+			"User with email '{0}' already exists.", 
+			email!);
 }

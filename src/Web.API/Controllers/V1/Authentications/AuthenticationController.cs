@@ -4,6 +4,7 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Web.API.Core;
+using Web.API.Core.Extensions;
 using Web.API.Core.Jwt;
 
 namespace Web.API.Controllers.V1.Authentications;

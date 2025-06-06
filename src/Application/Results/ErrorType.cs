@@ -44,11 +44,5 @@ public enum ErrorType
 	/// Indicates that the user is authenticated but does not have the necessary permissions to perform the requested action.
 	/// </summary>
 	/// <remarks>Often maps to HTTP 403 Forbidden.</remarks>
-	AccessForbidden = 5,
-
-	/// <summary>
-	/// Indicates an unexpected error occurred on the server side that prevented the request from being fulfilled.
-	/// </summary>
-	/// <remarks>Often maps to HTTP 500 Internal Server Error.</remarks>
-	InternalServerError = 6
+	AccessForbidden = 5
 }

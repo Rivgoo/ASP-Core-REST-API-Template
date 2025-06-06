@@ -55,5 +55,5 @@ public static class AuthenticationErrors
 	/// </summary>
 	/// <value>An <see cref="Error"/> instance for a service error.</value>
 	public static Error ServiceError =>
-		Error.InternalServerError($"{_authenticationPrefix}.ServiceError", "An unexpected error occurred during authentication.");
+		Error.Failure($"{_authenticationPrefix}.ServiceError", "An unexpected error occurred during authentication.");
 }

@@ -1,7 +1,7 @@
 ﻿using Application.Results;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Web.API.Core;
+namespace Web.API.Core.Extensions;
 
 internal static class ResultExtensions
 {

@@ -22,19 +22,6 @@ public static class StringUtilities
 	private static readonly Regex _validPhoneNumberCharsRegex =
 			new(@"^[0-9\+\-\(\)\s]+$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
-	public static bool IsValidWebUrlWithDomainCheck(string? url)
-	{
-		if (string.IsNullOrWhiteSpace(url))
-			return false;
-
-		if (Uri.TryCreate(url, UriKind.Absolute, out Uri? uriResult) && uriResult != null)
-			if (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps)
-				if (!string.IsNullOrWhiteSpace(uriResult.Host) && !uriResult.IsLoopback && uriResult.HostNameType == UriHostNameType.Dns)
-					return uriResult.Host.Contains('.');
-
-		return false;
-	}
-
 	/// <summary>
 	/// Trims the string properties of the specified object.
 	/// </summary>
@@ -59,7 +46,7 @@ public static class StringUtilities
 		{
 			string? value = property.GetValue(obj) as string;
 
-			property.SetValue(obj, SafeTrim(value));
+			property.SetValue(obj, value?.Trim());
 		}
 	}
 
@@ -171,16 +158,4 @@ public static class StringUtilities
 
 		return true;
 	}
-
-	/// <summary>
-	/// Safely trims a string value, returning null if the input is null.
-	/// </summary>
-	/// <remarks>
-	/// Unlike <see cref="string.Trim()"/> which would throw an exception on null input,
-	/// this method handles null gracefully by returning null.
-	/// Empty or whitespace-only strings are trimmed correctly.
-	/// </remarks>
-	/// <param name="value">The string value to trim.</param>
-	/// <returns>The trimmed string, or <see langword="null"/> if the input value was null.</returns>
-	private static string? SafeTrim(string? value) => value?.Trim();
 }
