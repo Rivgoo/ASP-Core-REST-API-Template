@@ -6,12 +6,8 @@ using System.Text.RegularExpressions;
 namespace Application.Utilities;
 
 /// <summary>
-/// Provides utility methods for common data manipulation tasks.
+/// Provides static utility methods for string manipulation and common data validation tasks.
 /// </summary>
-/// <remarks>
-/// This static class contains helper methods that can be used across the application layer
-/// or other layers where general utility functions are needed.
-/// </remarks>
 public static class StringUtilities
 {
 	private static readonly Regex _emailRegex = new(
@@ -23,16 +19,14 @@ public static class StringUtilities
 			new(@"^[0-9\+\-\(\)\s]+$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
 	/// <summary>
-	/// Trims the string properties of the specified object.
+	/// Trims leading and trailing whitespace from all public, readable, and writable string properties of the specified object.
 	/// </summary>
-	/// <remarks>
-	/// This method uses reflection to find all public, readable, and writable string properties
-	/// of the object and trims their values (removes leading and trailing whitespace).
-	/// Null string property values remain null after trimming.
-	/// </remarks>
-	/// <typeparam name="T">The type of the object whose string properties are to be trimmed.</typeparam>
+	/// <typeparam name="T">The type of the object.</typeparam>
 	/// <param name="obj">The object whose string properties are to be trimmed. Must not be null.</param>
-	/// <exception cref="ArgumentNullException">Thrown when <paramref name="obj"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">Thrown if <paramref name="obj"/> is null.</exception>
+	/// <remarks>
+	/// This method uses reflection to access properties. Null string property values remain null.
+	/// </remarks>
 	public static void TrimStringProperties<T>(T obj)
 		where T : class
 	{
@@ -51,20 +45,15 @@ public static class StringUtilities
 	}
 
 	/// <summary>
-	/// Checks if a given string is a valid phone number based on a basic format and digit count.
+	/// Validates a phone number string based on allowed characters and digit count.
 	/// </summary>
 	/// <param name="phoneNumber">The phone number string to validate.</param>
 	/// <param name="minimumDigitLength">The minimum number of digits required after removing non-digit characters.</param>
 	/// <param name="maximumDigitLength">The maximum number of digits allowed after removing non-digit characters.</param>
 	/// <returns><see langword="true"/> if the phone number is considered valid; otherwise, <see langword="false"/>.</returns>
 	/// <remarks>
-	/// This method performs a basic validation:
-	/// 1. Checks if the string is null or empty.
-	/// 2. Checks if the string contains only allowed characters (digits, space, hyphen, parentheses, plus).
-	/// 3. Removes all non-digit characters and checks if the resulting string of digits meets the minimum and maximum required length.
-	///
-	/// This validation does NOT verify country-specific formats or the actual existence/validity of the phone number.
-	/// For strict, country-specific validation, consider using a dedicated library like libphonenumber.
+	/// Performs basic validation: checks for null/emptiness, allowed characters (digits, space, hyphen, parentheses, plus),
+	/// and digit count within the specified range. Does not verify country-specific formats.
 	/// </remarks>
 	public static bool ValidatePhoneNumber(string? phoneNumber, int minimumDigitLength, int maximumDigitLength)
 	{
@@ -83,14 +72,13 @@ public static class StringUtilities
 	}
 
 	/// <summary>
-	/// Validates the format of an email address string.
+	/// Validates the format of an email address string using a regular expression.
 	/// </summary>
+	/// <param name="email">The email address string to validate. If valid, it's not null.</param>
+	/// <returns><see langword="true"/> if the string is a non-null, non-whitespace, validly formatted email address; otherwise, <see langword="false"/>.</returns>
 	/// <remarks>
-	/// Checks if the provided string follows a standard email address format.
-	/// It handles null or empty strings by returning false.
+	/// Returns <see langword="false"/> for null or whitespace strings.
 	/// </remarks>
-	/// <param name="email">The email address string to validate.</param>
-	/// <returns><see langword="true"/> if the string is a valid email format and is not null/empty; otherwise, <see langword="false"/>.</returns>
 	public static bool ValidateEmail([NotNullWhen(true)] string? email)
 	{
 		if (string.IsNullOrWhiteSpace(email))
@@ -100,19 +88,15 @@ public static class StringUtilities
 	}
 
 	/// <summary>
-	/// Validates if a password meets the specified identity password policy requirements.
+	/// Validates if a password meets the criteria specified in <see cref="PasswordOptions"/>.
 	/// </summary>
-	/// <remarks>
-	/// This method manually checks the password string against the criteria defined
-	/// in the provided <paramref name="passwordOptions"/>, such as minimum length,
-	/// required unique characters, and inclusion of digits, lowercase, uppercase,
-	/// and non-alphanumeric characters.
-	/// It returns <see langword="false"/> if the password fails any of the enabled policy checks.
-	/// It does NOT include checks related to user context (e.g., password containing username).
-	/// </remarks>
-	/// <param name="password">The password string to validate. Can be null or empty.</param>
-	/// <param name="passwordOptions">The <see cref="PasswordOptions"/> defining the required password policy.</param>
+	/// <param name="password">The password string to validate. If valid, it's not null.</param>
+	/// <param name="passwordOptions">The <see cref="PasswordOptions"/> defining the policy (e.g., length, required characters).</param>
 	/// <returns><see langword="true"/> if the password meets all enabled policy requirements; otherwise, <see langword="false"/>.</returns>
+	/// <remarks>
+	/// Checks for length, unique characters, and presence of digits, lowercase, uppercase, and non-alphanumeric characters as configured in <paramref name="passwordOptions"/>.
+	/// Returns <see langword="false"/> for null or whitespace passwords.
+	/// </remarks>
 	public static bool ValidatePassword([NotNullWhen(true)] string? password, PasswordOptions passwordOptions)
 	{
 		if (string.IsNullOrWhiteSpace(password))

@@ -142,7 +142,7 @@ internal class FilterService<TEntity, TFilter>(
 
 	public async Task<Result<PaginatedList<TResult>>> ApplyWithUnionAsync<TResult, TSelector>(
 		IQueryable<TResult> union,
-		List<QueryableOrder> resultOrder = default!,
+		List<QueryableOrder>? resultOrder = null,
 		CancellationToken cancellationToken = default)
 		where TResult : class
 		where TSelector : ISelector<TEntity, TResult>
@@ -174,7 +174,7 @@ internal class FilterService<TEntity, TFilter>(
 	public async Task<Result<PaginatedList<TResult>>> ApplyWithUnionAsync<TResult>(
 		IQueryable<TResult> union,
 		Expression<Func<TEntity, TResult>> selector,
-		List<QueryableOrder> resultOrder = default!,
+		List<QueryableOrder>? resultOrder = null,
 		CancellationToken cancellationToken = default)
 		where TResult : class
 	{
