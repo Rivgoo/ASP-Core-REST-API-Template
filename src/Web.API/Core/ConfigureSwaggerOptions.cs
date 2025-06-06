@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
 using Unchase.Swashbuckle.AspNetCore.Extensions.Extensions;
 
-namespace Web.API;
+namespace Web.API.Core;
 
 /// <summary>
 /// Configures Swagger options for API versioning and documentation.

@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using Web.API.Core.Jwt;
 using Web.API.Core.Options;
+using Web.API.Core;
 
 namespace Web.API.Extensions;
 
