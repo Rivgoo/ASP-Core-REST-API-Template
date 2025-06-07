@@ -168,7 +168,7 @@ Once configured, you can run the application using various methods:
     (Adjust the port if necessary based on your `launchSettings.json` or console output).
     You'll find interactive API documentation where you can explore endpoints, view models, and test API calls directly.
 
-    ![Swagger UI Example](https://postimg.cc/xNytSXHc)
+    [![Swagger UI Example](https://i.postimg.cc/ZnXgp35F/2025-06-07-095758.png)](https://postimg.cc/xNytSXHc)
 
 ## ✨ Project Overview
 
